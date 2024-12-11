@@ -10,6 +10,7 @@ export default defineComponent({
 
 
 <el-menu
+    :router="true"
     class="el-menu"
     mode="horizontal"
     :ellipsis="false"
@@ -19,11 +20,11 @@ export default defineComponent({
     <el-text class="mx-1" size="large" tag="b">软件缺陷管理系统</el-text>
   </el-menu-item>
   <div class="flex-grow" />
-  <el-sub-menu index="1">
+  <el-sub-menu index="user">
     <template #title><el-icon><UserFilled /></el-icon><el-text>管理员</el-text>&nbsp;&nbsp;<el-tag type="primary">管理员</el-tag></template>
-    <el-menu-item index="2-1">用户信息</el-menu-item>
-    <el-menu-item index="2-2">修改密码</el-menu-item>
-    <el-menu-item index="2-3">登出</el-menu-item>
+    <el-menu-item index="/user/info">用户信息</el-menu-item>
+    <el-menu-item index="/user/password">修改密码</el-menu-item>
+    <el-menu-item index="/user/logout">登出</el-menu-item>
   </el-sub-menu>
 </el-menu>
 

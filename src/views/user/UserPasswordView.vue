@@ -2,7 +2,9 @@
 </script>
 
 <template>
-  <main>
-    <h1>This is home page</h1>
-  </main>
+<h1>User Password</h1>
 </template>
+
+<style>
+
+</style>

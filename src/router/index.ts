@@ -6,19 +6,54 @@ const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
     {
-      name: 'home',
       path: '/',
       component: HomeView,
     },
     {
-      name: 'project',
-      path: '/project',
-      redirect: '/list',
+      path: '/user',
+      redirect: 'list',
       children: [
         {
-          name: 'list',
+          path: 'info',
+          component: () => import('@/views/user/UserInfoView.vue'),
+        },
+        {
+          path: 'password',
+          component: () => import('@/views/user/UserPasswordView.vue'),
+        },
+        {
+          path: 'list',
+          component: () => import('@/views/user/UserListView.vue'),
+        }
+      ]
+    },
+    {
+      path: '/project',
+      redirect: 'list',
+      children: [
+        {
           path: 'list',
           component: () => import('@/views/project/ProjectListView.vue'),
+        }
+      ]
+    },
+    {
+      path: '/task',
+      redirect: 'list',
+      children: [
+        {
+          path: 'list',
+          component: () => import('@/views/task/TaskListView.vue'),
+        }
+      ]
+    },
+    {
+      path: '/bug',
+      redirect: 'list',
+      children: [
+        {
+          path: 'list',
+          component: () => import('@/views/bug/BugListView.vue'),
         }
       ]
     },
