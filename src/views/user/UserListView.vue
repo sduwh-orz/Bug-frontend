@@ -1,5 +1,5 @@
 <script lang="ts">
-import { Delete, Edit, Search } from '@element-plus/icons-vue'
+import {Delete, Edit, List, Search} from '@element-plus/icons-vue'
 import BreadCrumbNav from '@/components/BreadCrumbNav.vue'
 import user from '@/api/user.ts'
 import { User } from '@/types/user'
@@ -8,20 +8,6 @@ import { defineComponent, reactive, ref } from 'vue'
 const moduleName = 'user'
 const defaultPageSize = 10
 const pageSizes = [10, 25]
-const roles = [
-  {
-    'name': '全部',
-    'value': ''
-  },
-  {
-    'name': '普通用户',
-    'value': '普通用户'
-  },
-  {
-    'name': '管理员',
-    'value': '管理员'
-  }
-]
 
 export default defineComponent({
   computed: {
@@ -32,7 +18,7 @@ export default defineComponent({
       return Edit
     }
   },
-  components: { Delete, Edit, BreadCrumbNav, Search },
+  components: {List, Delete, Edit, BreadCrumbNav, Search },
   mounted() {
     this.updateData()
   },
@@ -52,7 +38,7 @@ export default defineComponent({
       data: reactive([]),
       defaultPageSize: defaultPageSize,
       pageSizes: pageSizes,
-      roles: roles
+      roles: user.rolesForQuery
     }
   },
   methods: {
@@ -141,7 +127,6 @@ export default defineComponent({
                 v-model="role"
                 class="m-2"
                 placeholder="全部"
-                size="large"
             >
               <el-option
                   v-for="role in roles"
@@ -170,7 +155,7 @@ export default defineComponent({
   <el-card class="info-card" shadow="never">
     <template #header>
       <div class="card-header">
-        <el-icon><Search /></el-icon>&nbsp;&nbsp;
+        <el-icon><List /></el-icon>&nbsp;&nbsp;
         <span>列表信息</span>
       </div>
     </template>
