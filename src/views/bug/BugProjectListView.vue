@@ -1,11 +1,11 @@
 <script lang="ts">
-import { Delete, Edit, Operation, Search } from '@element-plus/icons-vue'
+import { TrendCharts, Operation, Search } from '@element-plus/icons-vue'
 import BreadCrumbNav from '@/components/BreadCrumbNav.vue'
 import { defineComponent, reactive, ref } from 'vue'
-import project from '@/api/project.ts'
+import bug from '@/api/bug.ts'
 import type { Project } from '@/types/project'
 
-const moduleName = 'project'
+const moduleName = 'bug'
 const defaultPageSize = 10
 const pageSizes = [10, 25]
 
@@ -14,14 +14,11 @@ export default defineComponent({
     Operation() {
       return Operation
     },
-    Delete() {
-      return Delete
-    },
-    Edit() {
-      return Edit
+    TrendCharts() {
+      return TrendCharts
     }
   },
-  components: { Delete, Edit, Operation, BreadCrumbNav, Search },
+  components: { TrendCharts, Operation, BreadCrumbNav, Search },
   mounted() {
     this.updateData()
   },
@@ -42,7 +39,7 @@ export default defineComponent({
   },
   methods: {
     updateData() {
-      let result = project.getProjects(this.keyword, this.page, this.size)
+      let result = bug.getData(this.keyword, this.page, this.size)
       this.total = result.total
       this.start = result.start
       this.end = result.end
@@ -61,21 +58,13 @@ export default defineComponent({
       this.updateUrl()
       this.updateData()
     },
-    handleCreate() {
-      let url = '/' + moduleName + '/create'
-      this.$router.push(url)
-    },
     handleManage(_: number, row: Project) {
-      let url = '/' + moduleName + '/modules?id=' + row.id
+      let url = '/' + moduleName + '/bugs?id=' + row.id
       this.$router.push(url)
     },
-    handleEdit(_: number, row: Project) {
-      let url = '/' + moduleName + '/edit?id=' + row.id
+    handleStats(_: number, row: Project) {
+      let url = '/' + moduleName + '/stats?id=' + row.id
       this.$router.push(url)
-    },
-    handleDelete(_: number, row: Project) {
-      this.deleteDialogVisible = true
-      this.itemToDelete = row
     },
     handlePageChange(page: number) {
       this.page = page
@@ -86,17 +75,13 @@ export default defineComponent({
       this.updateUrl()
       this.updateData()
     },
-    performDelete() {
-      project.deleteProject(this.itemToDelete.id)
-      this.$router.go(0)
-    }
   }
 })
 
 </script>
 
 <template>
-  <BreadCrumbNav :page-paths="['项目管理', '项目列表']"></BreadCrumbNav>
+  <BreadCrumbNav :page-paths="['bug管理', '项目列表']"></BreadCrumbNav>
   <el-card class="info-card" shadow="never">
     <template #header>
       <div class="card-header">
@@ -113,7 +98,6 @@ export default defineComponent({
       <el-row class="row-bg" justify="end">
         <div class="flex-grow" />
         <el-button type="primary" @click="handleSearch" round>查询</el-button>
-        <el-button type="primary" @click="handleCreate" round>添加</el-button>
       </el-row>
     </template>
   </el-card>
@@ -126,48 +110,34 @@ export default defineComponent({
     </template>
     <el-table :data="data" style="width: 100%" empty-text="没有找到匹配的记录">
       <el-table-column align="center" prop="id" label="序号" width="80"/>
-      <el-table-column align="center" prop="keyword" label="项目关键字"/>
       <el-table-column align="center" prop="name" label="项目名称"/>
-      <el-table-column align="center" prop="description" label="项目描述信息"/>
       <el-table-column align="center" prop="owner" label="项目负责人"/>
-      <el-table-column align="center" prop="created" label="创建日期"/>
-      <el-table-column align="center" label="操作" width="130">
+      <el-table-column align="center" prop="bugs" label="Bug 总数"/>
+      <el-table-column align="center" label="操作" width="100">
         <template #default="scope">
           <el-tooltip
               class="box-item"
-              content="模块管理"
+              content="Bug 管理"
               placement="top"
           >
             <el-button
                 :icon="Operation"
                 size="small"
+                type="primary"
                 @click="handleManage(scope.$index, scope.row)"
                 circle
             />
           </el-tooltip>
           <el-tooltip
               class="box-item"
-              content="修改"
+              content="Bug 统计"
               placement="top"
           >
             <el-button
-                :icon="Edit"
+                :icon="TrendCharts"
                 size="small"
-                type="primary"
-                @click="handleEdit(scope.$index, scope.row)"
-                circle
-            />
-          </el-tooltip>
-          <el-tooltip
-              class="box-item"
-              content="删除"
-              placement="top"
-          >
-            <el-button
-                :icon="Delete"
-                size="small"
-                type="danger"
-                @click="handleDelete(scope.$index, scope.row)"
+                type="warning"
+                @click="handleStats(scope.$index, scope.row)"
                 circle
             />
           </el-tooltip>
@@ -196,36 +166,21 @@ export default defineComponent({
         </el-col>
         <el-col id="pagination">
           <el-pagination
-            size="small"
-            background
-            layout="prev, pager, next"
-            class="mt-4"
-            hide-on-single-page
-            :pager-count="11"
-            v-model:current-page="page"
-            v-model:total="total"
-            v-model:page-size="size"
-            @current-change="handlePageChange"
+              size="small"
+              background
+              layout="prev, pager, next"
+              class="mt-4"
+              hide-on-single-page
+              :pager-count="11"
+              v-model:current-page="page"
+              v-model:total="total"
+              v-model:page-size="size"
+              @current-change="handlePageChange"
           />
         </el-col>
       </el-row>
     </template>
   </el-card>
-  <el-dialog
-      v-model="deleteDialogVisible"
-      title="确认删除"
-      width="500"
-  >
-    <span>确认删除这个项目吗？</span>
-    <template #footer>
-      <div class="dialog-footer">
-        <el-button @click="deleteDialogVisible = false">取消</el-button>
-        <el-button type="danger" @click="deleteDialogVisible = false; performDelete()">
-          确定
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
 </template>
 
 <style scoped>

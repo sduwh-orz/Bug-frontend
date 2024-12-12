@@ -36,7 +36,7 @@ const router = createRouter({
         {
           path: 'list',
           component: () => import('@/views/user/UserListView.vue'),
-        }
+        },
       ]
     },
     {
@@ -58,7 +58,7 @@ const router = createRouter({
         {
           path: 'edit',
           component: () => import('@/views/project/ProjectEditView.vue'),
-        }
+        },
       ]
     },
     {
@@ -68,7 +68,11 @@ const router = createRouter({
         {
           path: 'list',
           component: () => import('@/views/task/TaskListView.vue'),
-        }
+        },
+        {
+          path: 'edit',
+          component: () => import('@/views/task/TaskEditView.vue'),
+        },
       ]
     },
     {
@@ -77,8 +81,16 @@ const router = createRouter({
       children: [
         {
           path: 'list',
+          component: () => import('@/views/bug/BugProjectListView.vue'),
+        },
+        {
+          path: 'stats',
+          component: () => import('@/views/bug/BugStatsView.vue'),
+        },
+        {
+          path: 'bugs',
           component: () => import('@/views/bug/BugListView.vue'),
-        }
+        },
       ]
     },
   ],
