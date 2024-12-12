@@ -95,34 +95,6 @@ export default defineComponent({
           description: "网站发布系统",
           owner: "李静莉",
           created: "2016-09-14"
-        }, {
-          id: 8,
-          keyword: "CMS",
-          name: "网站发布系统",
-          description: "网站发布系统",
-          owner: "李静莉",
-          created: "2016-09-14"
-        }, {
-          id: 9,
-          keyword: "CMS",
-          name: "网站发布系统",
-          description: "网站发布系统",
-          owner: "李静莉",
-          created: "2016-09-14"
-        }, {
-          id: 10,
-          keyword: "CMS",
-          name: "网站发布系统",
-          description: "网站发布系统",
-          owner: "李静莉",
-          created: "2016-09-14"
-        }, {
-          id: 11,
-          keyword: "CMS",
-          name: "网站发布系统",
-          description: "网站发布系统",
-          owner: "李静莉",
-          created: "2016-09-14"
         },
       ],
     }
@@ -228,13 +200,13 @@ export default defineComponent({
       </div>
     </template>
     <el-table :data="data" style="width: 100%">
-      <el-table-column prop="id" label="序号" width="80"/>
-      <el-table-column prop="keyword" label="项目关键字"/>
-      <el-table-column prop="name" label="项目名称"/>
-      <el-table-column prop="description" label="项目描述信息"/>
-      <el-table-column prop="owner" label="项目负责人"/>
-      <el-table-column prop="created" label="创建日期"/>
-      <el-table-column label="操作" width="130">
+      <el-table-column align="center" prop="id" label="序号" width="80"/>
+      <el-table-column align="center" prop="keyword" label="项目关键字"/>
+      <el-table-column align="center" prop="name" label="项目名称"/>
+      <el-table-column align="center" prop="description" label="项目描述信息"/>
+      <el-table-column align="center" prop="owner" label="项目负责人"/>
+      <el-table-column align="center" prop="created" label="创建日期"/>
+      <el-table-column align="center" label="操作" width="130">
         <template #default="scope">
           <el-button
               :icon="Operation"
@@ -262,7 +234,7 @@ export default defineComponent({
     <template #footer>
       <el-row class="row-bg" justify="space-between">
         <el-col>
-          显示第 {{ start }} 到第 {{ end }} 条记录，总共 {{ total }} 条记录，每页显示
+          <el-text size="small">显示第 {{ start }} 到第 {{ end }} 条记录，总共 {{ total }} 条记录，每页显示</el-text>
           <el-select
               v-model="size"
               size="small"
@@ -276,7 +248,8 @@ export default defineComponent({
                 :label="size"
                 :value="size"
             />
-          </el-select> 条记录
+          </el-select>
+          <el-text size="small"> 条记录</el-text>
         </el-col>
         <el-col id="pagination">
           <el-pagination
