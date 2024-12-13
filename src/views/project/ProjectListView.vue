@@ -105,7 +105,7 @@ export default defineComponent({
       </div>
     </template>
     <el-form label-width="auto">
-      <el-form-item label="项目名称" style="max-width: 60%">
+      <el-form-item label="项目名称" style="max-width: 60%" label-width="100">
         <el-input v-model="keyword" />
       </el-form-item>
     </el-form>
@@ -182,7 +182,7 @@ export default defineComponent({
               v-model="size"
               size="small"
               style="width: 60px"
-              :placeholder="defaultPageSize"
+              :placeholder="defaultPageSize.toString()"
               @change="handleSizeChange"
           >
             <el-option
@@ -229,7 +229,4 @@ export default defineComponent({
 </template>
 
 <style scoped>
-#pagination {
-  justify-items: end;
-}
 </style>

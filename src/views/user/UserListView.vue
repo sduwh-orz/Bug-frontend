@@ -111,19 +111,19 @@ export default defineComponent({
     <el-form>
       <el-row justify="space-between">
         <el-col :span="11">
-          <el-form-item label="&emsp;用户名" class="disable-select">
+          <el-form-item label="用户名" class="disable-select" label-width="80">
             <el-input v-model="username" />
           </el-form-item>
         </el-col>
         <el-col :span="11">
-          <el-form-item label="真实姓名" class="disable-select">
+          <el-form-item label="真实姓名" class="disable-select" label-width="80">
             <el-input v-model="realName" />
           </el-form-item>
         </el-col>
       </el-row>
       <el-row justify="space-between">
         <el-col :span="11">
-          <el-form-item label="&emsp;&emsp;角色" class="disable-select">
+          <el-form-item label="角色" class="disable-select" label-width="80">
             <el-select
                 v-model="role"
                 class="m-2"
@@ -139,7 +139,7 @@ export default defineComponent({
           </el-form-item>
         </el-col>
         <el-col :span="11">
-          <el-form-item label="&emsp;&emsp;邮箱" class="disable-select">
+          <el-form-item label="邮箱" class="disable-select" label-width="80">
             <el-input v-model="email" />
           </el-form-item>
         </el-col>
@@ -205,7 +205,7 @@ export default defineComponent({
               v-model="size"
               size="small"
               style="width: 60px"
-              :placeholder="defaultPageSize"
+              :placeholder="defaultPageSize.toString()"
               @change="handleSizeChange"
           >
             <el-option
@@ -252,7 +252,4 @@ export default defineComponent({
 </template>
 
 <style scoped>
-#pagination {
-  justify-items: end;
-}
 </style>
