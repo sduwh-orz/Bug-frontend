@@ -1,12 +1,12 @@
 <script lang="ts">
 import { reactive, ref } from 'vue'
-import { useRoute } from 'vue-router'
 import { EditPen } from '@element-plus/icons-vue'
 import { ElMessage } from 'element-plus'
 import BreadCrumbNav from '@/components/BreadCrumbNav.vue'
 import user from '@/api/user.ts'
 import project from '@/api/project.ts'
 
+const loading = ref(true)
 const moduleName = 'project'
 const formData = reactive({
   id: '',
@@ -21,38 +21,30 @@ const users = reactive([])
 export default {
   components: {EditPen, BreadCrumbNav},
   setup() {
-    let route = useRoute()
-    formData.id = route.query.id ? route.query.id.toString() : ''
-    project.get(formData.id).then(projectInfo => {
-      if (projectInfo) {
-        formData.name = projectInfo.name
-        formData.keyword = projectInfo.keyword
-        formData.description = projectInfo.description
-        formData.owner = projectInfo.owner.id
-      }
-    })
-    user.all().then(data => {
-      users.length = 0
-      Object.assign(users, data)
-    })
     return {
+      loading,
       users,
-      formData: formData,
-      formDataRef: formDataRef,
+      formData,
+      formDataRef,
       formRules: reactive({
         name: [
           {
             required: true,
             message: '请输入项目名称',
             trigger: 'blur'
-          }
+          },
+          { max: 50, message: '项目名称不能超过50个字', trigger: 'blur' },
+        ],
+        description: [
+          { max: 200, message: '项目描述不能超过200个字', trigger: 'blur' },
         ],
         keyword: [
           {
             required: true,
             message: '请输入项目关键字',
             trigger: 'blur'
-          }
+          },
+          { max: 20, message: '项目关键字不能超过20个字', trigger: 'blur' },
         ],
         owner: [
           {
@@ -63,6 +55,23 @@ export default {
         ]
       }),
     }
+  },
+  mounted() {
+    loading.value = true
+    formData.id = this.$route.query.id ? this.$route.query.id.toString() : ''
+    user.all().then(data => {
+      users.length = 0
+      Object.assign(users, data)
+    })
+    project.get(formData.id).then(projectInfo => {
+      if (projectInfo) {
+        formData.name = projectInfo.name
+        formData.keyword = projectInfo.keyword
+        formData.description = projectInfo.description
+        formData.owner = projectInfo.owner.id
+      }
+      loading.value = false
+    })
   },
   methods: {
     handleSubmit() {
@@ -91,7 +100,7 @@ export default {
 
 <template>
   <BreadCrumbNav :page-paths="['项目管理', '项目列表', '项目修改']"></BreadCrumbNav>
-  <el-card class="info-card" shadow="never">
+  <el-card class="info-card" shadow="never" v-loading="loading">
     <template #header>
       <div class="card-header">
         <el-icon>
@@ -114,7 +123,7 @@ export default {
         <el-input v-model="formData.keyword"/>
       </el-form-item>
       <el-form-item label="项目描述信息" prop="description">
-        <el-input v-model="formData.description" type="textarea"/>
+        <el-input v-model="formData.description" type="textarea" maxlength="200" show-word-limit/>
       </el-form-item>
       <el-form-item label="项目负责人" prop="owner">
         <el-select v-model="formData.owner" placeholder="请选择..." no-data-text="暂无用户">

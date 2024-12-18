@@ -12,6 +12,7 @@ import bug from '@/api/bug.ts'
 import utils from '@/api/utils.ts'
 import project from '@/api/project.ts'
 
+const loading = ref(true)
 const refComment = ref()
 const grades = reactive([])
 const statusTypes = reactive([])
@@ -42,7 +43,6 @@ export default defineComponent({
     },
     features() {
       if (this.query.module) {
-        console.log(this.project)
         let nowModule = this.project.modules.find((m: any) => { return m.id == this.query.module })
         if (nowModule)
           return utils.toOptions(nowModule?.features)
@@ -97,6 +97,7 @@ export default defineComponent({
     })
 
     return {
+      loading,
       page: ref(),
       dialogs: reactive({
         solve: {
@@ -126,7 +127,7 @@ export default defineComponent({
             ],
           }),
         },
-        close: {
+        toggle: {
           comment: '',
           toggle: false,
         },
@@ -147,16 +148,18 @@ export default defineComponent({
       query,
       project: nowProject,
       selectedItem: {
-        id: ''
+        id: '',
+        status: utils.emptyType
       },
     }
   },
   methods: {
     async updateData() {
+      loading.value = true
       let result = await bug.searchInProject(query, this.page.page, this.page.size)
       data.length = 0
       Object.assign(data, result.data)
-
+      loading.value = false
       return result
     },
     clearFeature() {
@@ -185,8 +188,8 @@ export default defineComponent({
       this.dialogs.comment.toggle = true
       this.selectedItem = row
     },
-    handleClose(_: number, row: any) {
-      this.dialogs.close.toggle = true
+    handleToggle(_: number, row: any) {
+      this.dialogs.toggle.toggle = true
       this.selectedItem = row
     },
     handleSubmitSolve() {
@@ -199,7 +202,7 @@ export default defineComponent({
           if (response.success) {
             this.dialogs.solve.toggle = false
             ElMessage.success('提交成功')
-            this.$router.go(0)
+            this.updateData()
           } else {
             ElMessage.error('提交失败')
           }
@@ -217,7 +220,7 @@ export default defineComponent({
               if (response.success) {
                 this.dialogs.comment.toggle = false
                 ElMessage.success('提交成功')
-                this.$router.go(0)
+                this.updateData()
               } else {
                 ElMessage.error('提交失败')
               }
@@ -228,16 +231,16 @@ export default defineComponent({
         }
       }
     },
-    handleSubmitClose() {
+    handleSubmitToggle() {
       if (this.selectedItem) {
-        bug.close(
-            this.selectedItem.id,
-            this.dialogs.close.comment
+        (this.selectedItem.status.name == '已关闭' ?
+            bug.open(this.selectedItem.id, this.dialogs.toggle.comment) :
+                bug.close(this.selectedItem.id, this.dialogs.toggle.comment)
         ).then((response) => {
           if (response.success) {
-            this.dialogs.close.toggle = false
+            this.dialogs.toggle.toggle = false
             ElMessage.success('提交成功')
-            this.$router.go(0)
+            this.updateData()
           } else {
             ElMessage.error('提交失败')
           }
@@ -407,6 +410,7 @@ export default defineComponent({
     <template #footer>
       <el-row class="row-bg" justify="end">
         <div class="flex-grow" />
+        <el-button @click="$router.push('/bug/list')" round>返回项目列表</el-button>
         <el-button type="primary" @click="handleSearch" round>查询</el-button>
         <el-button type="primary" @click="handleAllBugs" round>全部 Bug</el-button>
         <el-button type="primary" @click="handleMyBugs" round>我开发的 Bug</el-button>
@@ -422,7 +426,7 @@ export default defineComponent({
         <span>列表信息</span>
       </div>
     </template>
-    <el-table :data="data" style="width: 100%" empty-text="没有找到匹配的记录">
+    <el-table :data="data" style="width: 100%" empty-text="没有找到匹配的记录" v-loading="loading">
       <el-table-column align="center" type="index" label="序号" width="80"/>
       <el-table-column align="center" prop="name" label="Bug 标题"/>
       <el-table-column align="center" prop="grade.name" label="Bug 等级">
@@ -460,6 +464,7 @@ export default defineComponent({
                 size="small"
                 type="primary"
                 @click="handleEdit(scope.$index, scope.row)"
+                :disabled="scope.row.status.name=='已关闭'"
                 circle
             />
           </el-tooltip>
@@ -473,6 +478,7 @@ export default defineComponent({
                 size="small"
                 type="success"
                 @click="handleSolve(scope.$index, scope.row)"
+                :disabled="scope.row.status.name=='已关闭'"
                 circle
             />
           </el-tooltip>
@@ -486,19 +492,20 @@ export default defineComponent({
                 size="small"
                 type="warning"
                 @click="handleComment(scope.$index, scope.row)"
+                :disabled="scope.row.status.name=='已关闭'"
                 circle
             />
           </el-tooltip>
           <el-tooltip
               class="box-item"
-              content="关闭"
+              :content="scope.row.status.name=='已关闭' ? '打开' : '关闭'"
               placement="top"
           >
             <el-button
                 :icon="SwitchButton"
                 size="small"
-                type="danger"
-                @click="handleClose(scope.$index, scope.row)"
+                :type="scope.row.status.name=='已关闭' ? 'success' : 'danger'"
+                @click="handleToggle(scope.$index, scope.row)"
                 circle
             />
           </el-tooltip>
@@ -561,16 +568,16 @@ export default defineComponent({
       </div>
     </template>
   </el-dialog>
-  <el-dialog v-model="dialogs.close.toggle" title="关闭 Bug" width="500">
-    <el-form :model="dialogs.close" status-icon>
+  <el-dialog v-model="dialogs.toggle.toggle" :title="selectedItem?.status?.name == '已关闭' ? '打开 Bug' : '关闭 Bug'" width="500">
+    <el-form :model="dialogs.toggle" status-icon>
       <el-form-item label="备注" label-width="100" prop="comment">
-        <el-input v-model="dialogs.close.comment" type="textarea"/>
+        <el-input v-model="dialogs.toggle.comment" type="textarea"/>
       </el-form-item>
     </el-form>
     <template #footer>
       <div class="dialog-footer">
-        <el-button @click="dialogs.close.toggle = false">关闭</el-button>
-        <el-button type="primary" @click="handleSubmitClose()">保存</el-button>
+        <el-button @click="dialogs.toggle.toggle = false">关闭</el-button>
+        <el-button type="primary" @click="handleSubmitToggle()">保存</el-button>
       </div>
     </template>
   </el-dialog>

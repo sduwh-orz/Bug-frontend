@@ -13,17 +13,15 @@ const formData = reactive({
   description: '',
   owner: ''
 })
+const loading = ref(true)
 const formDataRef = ref()
 const users = reactive([])
 
 export default {
   components: {EditPen, BreadCrumbNav},
   setup() {
-    user.all().then(data => {
-      users.length = 0
-      Object.assign(users, data)
-    })
     return {
+      loading,
       users,
       formData: formData,
       formDataRef: formDataRef,
@@ -33,14 +31,19 @@ export default {
             required: true,
             message: '请输入项目名称',
             trigger: 'blur'
-          }
+          },
+          { max: 50, message: '项目名称不能超过50个字', trigger: 'blur' },
+        ],
+        description: [
+          { max: 200, message: '项目描述不能超过200个字', trigger: 'blur' },
         ],
         keyword: [
           {
             required: true,
             message: '请输入项目关键字',
             trigger: 'blur'
-          }
+          },
+          { max: 20, message: '项目关键字不能超过20个字', trigger: 'blur' },
         ],
         owner: [
           {
@@ -51,6 +54,17 @@ export default {
         ]
       }),
     }
+  },
+  mounted() {
+    Object.keys(formData).forEach(function(key) {
+      formData[key] = ''
+    })
+    loading.value = true
+    user.all().then(data => {
+      users.length = 0
+      Object.assign(users, data)
+      loading.value = false
+    })
   },
   methods: {
     handleSubmit() {
@@ -79,7 +93,7 @@ export default {
 
 <template>
   <BreadCrumbNav :page-paths="['项目管理', '项目列表', '项目添加']"></BreadCrumbNav>
-  <el-card class="info-card" shadow="never">
+  <el-card class="info-card" shadow="never" v-loading="loading">
     <template #header>
       <div class="card-header">
         <el-icon>
@@ -102,7 +116,7 @@ export default {
         <el-input v-model="formData.keyword"/>
       </el-form-item>
       <el-form-item label="项目描述信息" prop="description">
-        <el-input v-model="formData.description" type="textarea"/>
+        <el-input v-model="formData.description" type="textarea" maxlength="200" show-word-limit/>
       </el-form-item>
       <el-form-item label="项目负责人" prop="owner">
         <el-select v-model="formData.owner" placeholder="请选择..." no-data-text="暂无用户">

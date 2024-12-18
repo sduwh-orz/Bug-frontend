@@ -4,10 +4,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { ArrowLeft, CirclePlus, FolderOpened, Delete, Edit, Plus } from '@element-plus/icons-vue'
 import BreadCrumbNav from '@/components/BreadCrumbNav.vue'
 import type { Module } from '@/types/module'
+import type { Feature } from '@/types/feature'
 import module from '@/api/module'
 import project from '@/api/project'
 import feature from '@/api/feature'
 
+const loading = ref(true)
 const refModuleCreate = ref()
 const refModifyModule = ref()
 const refFeatureCreate = ref()
@@ -30,17 +32,15 @@ export default {
   },
   setup() {
     return {
-      refModuleCreate: refModuleCreate,
-      refModifyModule: refModifyModule,
-      refFeatureCreate: refFeatureCreate,
-      refFeatureModify: refFeatureModify,
+      loading,
+      refModuleCreate,
+      refModifyModule,
+      refFeatureCreate,
+      refFeatureModify,
     }
   },
   mounted() {
-    this.id = this.$route.query.id ?.toString()
-    project.get(this.id).then(response => {
-      this.currentProject = response
-    })
+    this.updateData()
   },
   data() {
     return {
@@ -60,7 +60,8 @@ export default {
           toggle: false,
           rules: {
             name: [
-              { required: true, message: '请输入模块名', trigger: 'blur' }
+              { required: true, message: '请输入模块名', trigger: 'blur' },
+              { max: 50, message: '模块名称不能超过50个字', trigger: 'blur' },
             ]
           }
         },
@@ -69,43 +70,55 @@ export default {
           toggle: false,
           rules: {
             name: [
-              { required: true, message: '请输入模块名', trigger: 'blur' }
+              { required: true, message: '请输入模块名', trigger: 'blur' },
+              { max: 50, message: '模块名称不能超过50个字', trigger: 'blur' },
             ]
           }
         },
         featureCreate: {
           name: '',
-          hours: 0.0,
+          hours: undefined,
           toggle: false,
           rules: {
             name: [
-              { required: true, message: '请输入功能名', trigger: 'blur' }
+              { required: true, message: '请输入功能名', trigger: 'blur' },
+              { max: 50, message: '功能名称不能超过50个字', trigger: 'blur' },
             ],
             hours: [
-              { required: true, message: '请选择该功能的计划耗时', trigger: 'blur'},
+              { required: true, message: '计划时间不可以为空', trigger: 'blur'},
             ]
           }
         },
         featureModify: {
           name: '',
-          hours: 0.0,
+          hours: undefined,
           toggle: false,
           rules: {
             name: [
-              { required: true, message: '请输入功能名', trigger: 'blur' }
+              { required: true, message: '请输入功能名', trigger: 'blur' },
+              { max: 50, message: '功能名称不能超过50个字', trigger: 'blur' },
             ],
             hours: [
-              { required: true, message: '请选择该功能的计划耗时', trigger: 'blur'},
+              { required: true, message: '计划时间不可以为空', trigger: 'blur'},
             ]
           }
         },
       }),
-      selectedItem: {
-        id: ''
-      },
+      selectedItem: reactive({
+        id: '',
+        features: [] as Feature[]
+      }),
     }
   },
   methods: {
+    async updateData() {
+      loading.value = true
+      this.id = this.$route.query.id ?.toString()
+      project.get(this.id).then(response => {
+        this.currentProject = response
+        loading.value = false
+      })
+    },
     goBack() {
       this.$router.push('/project/list')
     },
@@ -125,6 +138,10 @@ export default {
     },
     handleModuleDelete(_: number, row: any) {
       this.selectedItem = row
+      if (this.selectedItem.features.length > 0) {
+        ElMessage.error('模块已创建功能不可以删除')
+        return
+      }
       ElMessageBox.confirm(
           '确定要删除模块吗？',
           '删除模块',
@@ -281,7 +298,7 @@ export default {
 
 <template>
   <BreadCrumbNav :page-paths="['项目管理', '项目列表', '模块管理']"></BreadCrumbNav>
-  <el-card class="info-card" shadow="never">
+  <el-card class="info-card" shadow="never" v-loading="loading">
     <template #header>
       <div class="module-card-header">
         <div class="module-card-header-left">
@@ -486,7 +503,7 @@ export default {
           <el-input v-model="dialogs.featureCreate.name" placeholder="请输入功能名" style="width: 300px" />
         </el-form-item>
         <el-form-item label="计划耗时" prop="hours">
-          <el-input-number v-model="dialogs.featureCreate.hours" :precision="1" :step="0.1" :min="0" :max="114514" />
+          <el-input-number v-model="dialogs.featureCreate.hours" :min="0" :max="114514" />（小时）
         </el-form-item>
       </el-form>
     </div>
@@ -519,7 +536,7 @@ export default {
           <el-input v-model="dialogs.featureModify.name" placeholder="请输入功能名" style="width: 300px" />
         </el-form-item>
         <el-form-item label="计划耗时" prop="hours">
-          <el-input-number v-model="dialogs.featureModify.hours" :precision="1" :step="0.1" :min="0" :max="114514" />
+          <el-input-number v-model="dialogs.featureModify.hours" :min="0" :max="114514" />（小时）
         </el-form-item>
       </el-form>
     </div>

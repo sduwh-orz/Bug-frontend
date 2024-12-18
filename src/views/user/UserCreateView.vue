@@ -6,7 +6,7 @@ import { ElMessage } from 'element-plus';
 import user from '@/api/user.ts'
 import utils from '@/api/utils.ts'
 
-const moduleName = 'user'
+const moduleName = 'user_manage'
 const formData = reactive({
   username: '',
   password: '',
@@ -15,16 +15,14 @@ const formData = reactive({
   email: ''
 })
 const roles = reactive([])
+const loading = ref(true)
 const formDataRef = ref()
 
 export default {
   components: {EditPen, BreadCrumbNav},
   setup() {
-    user.getRoles().then(response => {
-      roles.length = 0
-      Object.assign(roles, utils.toOptions(response, true))
-    })
     return {
+      loading,
       roles,
       formData: formData,
       formDataRef: formDataRef,
@@ -34,21 +32,27 @@ export default {
             required: true,
             message: '请输入用户名',
             trigger: 'blur'
-          }
+          },
+          { max: 30, message: '用户名长度最多为30位', trigger: 'blur' },
+          { min: 6, message: '用户名长度至少为6位', trigger: 'blur' },
+          { pattern: /^[a-zA-Z0-9]+$/, message: '用户名仅能包含字母和数字', trigger: 'blur' },
         ],
         password: [
           {
             required: true,
             message: '请输入密码',
             trigger: 'blur'
-          }
+          },
+          { max: 20, message: '密码长度最多为20位', trigger: 'blur' },
+          { min: 6, message: '密码长度至少为6位', trigger: 'blur' },
         ],
         realName: [
           {
             required: true,
             message: '请选择真实姓名',
             trigger: 'blur'
-          }
+          },
+          { max: 30, message: '真实姓名长度不能超过30个字', trigger: 'blur' },
         ],
         role: [
           {
@@ -57,8 +61,23 @@ export default {
             trigger: 'blur'
           }
         ],
+        email: [
+          { max: 50, message: '邮箱长度不能超过50个字符', trigger: 'blur' },
+          { pattern: /^[A-Za-zd]+([-_.][A-Za-zd]+)*@([A-Za-zd]+[-.])+[A-Za-zd]{2,5}$/, message: '邮箱格式错误', trigger: 'blur' },
+        ]
       })
     }
+  },
+  mounted() {
+    Object.keys(formData).forEach(function(key) {
+      formData[key] = ''
+    })
+    loading.value = true
+    user.getRoles().then(response => {
+      roles.length = 0
+      Object.assign(roles, utils.toOptions(response, true))
+      loading.value = false
+    })
   },
   methods: {
     handleSubmit() {
@@ -70,7 +89,7 @@ export default {
               formDataRef.value.resetFields()
               this.$router.push('/' + moduleName + '/list')
             } else {
-              ElMessage.error('添加失败')
+              ElMessage.error(response.message ? response.message : '添加失败')
             }
           })
         })
@@ -87,7 +106,7 @@ export default {
 
 <template>
   <BreadCrumbNav :page-paths="['用户管理', '用户列表', '用户添加']"></BreadCrumbNav>
-  <el-card class="info-card" shadow="never">
+  <el-card class="info-card" shadow="never" v-loading="loading">
     <template #header>
       <div class="card-header">
         <el-icon>

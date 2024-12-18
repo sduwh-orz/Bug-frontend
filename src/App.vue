@@ -1,5 +1,6 @@
 <script lang="ts">
-import { RouterView, useRouter } from 'vue-router'
+import { RouterView, useRoute, useRouter } from 'vue-router'
+import { useStore } from 'vuex'
 import Navigation from '@/components/Navigation.vue'
 import PageHeader from '@/components/PageHeader.vue'
 
@@ -12,10 +13,21 @@ export default {
       return this.$store.state.user
     }
   },
-  mounted() {
+  setup() {
+    const store = useStore()
+    const route = useRoute()
     const router = useRouter()
-    this.$store.dispatch('fetchUser').then(() => {
-      if (!this.$store.state.user) {
+    store.dispatch('fetchUser').then(() => {
+      if (route.matched.length > 0)
+        if (route.matched[0].meta.requiresLeader)
+          if (store.state.user?.leader === false && store.state.user?.role?.name !== '管理员')
+            router.push('/')
+        else if (route.matched[0].meta.requiresAdmin && store.state.user?.role?.name !== '管理员')
+            router.push('/')
+      if (route.meta.notLoggedIn && store.state.user)
+        router.push('/')
+
+      if (!store.state.user) {
         localStorage.removeItem('isLoggedIn')
         router.push('/login')
       }

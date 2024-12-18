@@ -18,31 +18,28 @@ const formData = reactive({
   feature: '',
   description: '',
 })
+const loading = ref(true)
 const formDataRef = ref()
 const nowProject = reactive(project.empty)
 
 export default {
   components: {EditPen, BreadCrumbNav},
   setup() {
-    id.value = useRoute().query.id ?.toString()
-    bug.getGrades().then((result) => {
-      grades.length = 0
-      Object.assign(grades, utils.toOptions(result, true))
-    })
-    project.get(id.value).then((result) => {
-      if (result)
-        Object.assign(nowProject, result)
-    })
     return {
-      formData: formData,
-      formDataRef: formDataRef,
+      loading,
+      formData,
+      formDataRef,
       formRules: reactive({
         name: [
           {
             required: true,
             message: '请输入 Bug 标题',
             trigger: 'blur'
-          }
+          },
+          { max: 50, message: 'Bug 标题不能超过50个字', trigger: 'blur' },
+        ],
+        description: [
+          { max: 500, message: 'Bug 详情不能超过500个字', trigger: 'blur' },
         ],
         grade: [
           {
@@ -76,6 +73,20 @@ export default {
     }
   },
   mounted() {
+    loading.value = true
+    Object.keys(formData).forEach(function(key) {
+      formData[key] = ''
+    })
+    id.value = useRoute().query.id ?.toString()
+    bug.getGrades().then((result) => {
+      grades.length = 0
+      Object.assign(grades, utils.toOptions(result, true))
+    })
+    project.get(id.value).then((result) => {
+      if (result)
+        Object.assign(nowProject, result)
+      loading.value = false
+    })
   },
   computed: {
     features() {
@@ -116,7 +127,7 @@ export default {
 
 <template>
   <BreadCrumbNav :page-paths="['Bug 管理', '项目列表', 'Bug 列表', 'Bug 添加']"></BreadCrumbNav>
-  <el-card class="info-card" shadow="never">
+  <el-card class="info-card" shadow="never" v-loading="loading">
     <template #header>
       <div class="card-header">
         <el-icon>
@@ -166,7 +177,7 @@ export default {
         </el-select>
       </el-form-item>
       <el-form-item label="Bug 详情" prop="description">
-        <el-input v-model="formData.description" type="textarea"/>
+        <el-input v-model="formData.description" type="textarea" maxlength="500" show-word-limit/>
       </el-form-item>
     </el-form>
     <template #footer>
